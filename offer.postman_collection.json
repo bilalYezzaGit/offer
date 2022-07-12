@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"userName\":\"bilal2\",\n    \"birthDate\":\"1993-01-10\",\n    \"country\":\"France\",\n    \"phoneNumber\": \"0758624883\",\n    \"gender\": \"M\"\n}",
+					"raw": "{\n    \"userName\":\"bilal\",\n    \"birthDate\":\"1993-01-10\",\n    \"country\":\"France\",\n    \"phoneNumber\": \"0758624883\",\n    \"gender\": \"M\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -37,7 +37,31 @@
 			"name": "Get user details",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "{{host}}:{{port}}/users?userName=bilal&birthDate=1993-01-10&country=France",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "userName",
+							"value": "bilal"
+						},
+						{
+							"key": "birthDate",
+							"value": "1993-01-10"
+						},
+						{
+							"key": "country",
+							"value": "France"
+						}
+					]
+				}
 			},
 			"response": []
 		}
