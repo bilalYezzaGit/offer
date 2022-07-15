@@ -1,13 +1,12 @@
 package com.atos.offer.controller;
 
 import com.atos.offer.enums.Gender;
-import com.atos.offer.exception.BadCountryException;
 import com.atos.offer.exception.UserAlreadyExistsException;
 import com.atos.offer.exception.UserNotFoundException;
 import com.atos.offer.mapper.UserMapper;
 import com.atos.offer.model.User;
 import com.atos.offer.model.UserId;
-import com.atos.offer.service.UserService;
+import com.atos.offer.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
-class UserControllerTest {
+class UserControllerIntegrationTest {
 
     private final static LocalDate birthDate = LocalDate.of(1993, 1, 10);
     private final static String username = "username";
@@ -43,7 +43,7 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    UserService userService;
+    UserRepository userRepository;
 
     @Test
     void should_get_user_when_user_exists() throws Exception {
@@ -54,7 +54,7 @@ class UserControllerTest {
                 .gender(gender)
                 .phoneNumber(phoneNumber)
                 .build();
-        Mockito.when(userService.getUserById(any(), any(), any())).thenReturn(user);
+        Mockito.when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
         //When & Then
         this.mockMvc.perform(get("/users?userName={1}&birthDate={2}&country={3}", username, birthDate, country))
@@ -71,7 +71,7 @@ class UserControllerTest {
         //Given
         UserId userId = new UserId(username, birthDate, country);
         UserNotFoundException exception = new UserNotFoundException(userId);
-        Mockito.when(userService.getUserById(any(), any(), any())).thenThrow(exception);
+        Mockito.when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         //When & Then
         this.mockMvc.perform(get("/users?userName={1}&birthDate={2}&country={3}", username, birthDate, country))
@@ -103,7 +103,8 @@ class UserControllerTest {
                 .gender(gender)
                 .phoneNumber(phoneNumber)
                 .build();
-        Mockito.when(userService.createUser(any())).thenReturn(user);
+        Mockito.when(userRepository.findById(any())).thenReturn(Optional.empty());
+        Mockito.when(userRepository.save(any())).thenReturn(user);
 
         //When & Then
         this.mockMvc.perform(
@@ -113,7 +114,7 @@ class UserControllerTest {
                                 .accept(MediaType.APPLICATION_JSON)
                 )
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value(username))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.birthDate").value(birthDate.toString()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.phoneNumber").value(phoneNumber))
@@ -132,7 +133,7 @@ class UserControllerTest {
                 .phoneNumber(phoneNumber)
                 .build();
         UserAlreadyExistsException userAlreadyExistsException = new UserAlreadyExistsException(userId);
-        Mockito.when(userService.createUser(any())).thenThrow(userAlreadyExistsException);
+        Mockito.when(userRepository.findById(any())).thenReturn(Optional.of(user));
         //When & Then
         this.mockMvc.perform(
                         post("/users")
@@ -168,7 +169,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Validation failed for argument userDto"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid number: must be a valid french number"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists());
     }
 
@@ -183,8 +184,6 @@ class UserControllerTest {
                 .gender(gender)
                 .phoneNumber(phoneNumber)
                 .build();
-        BadCountryException badCountryException = new BadCountryException(otherCountry);
-        Mockito.when(userService.createUser(any())).thenThrow(badCountryException);
         //When & Then
         this.mockMvc.perform(
                         post("/users")
@@ -195,7 +194,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value(badCountryException.getMessage()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid Country: country must be France"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists());
     }
 
@@ -219,7 +218,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Validation failed for argument userDto"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid Age: user must be +18"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists());
     }
 

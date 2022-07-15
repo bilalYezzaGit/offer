@@ -10,6 +10,9 @@ import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+/**
+ * User id for user entity
+ */
 @Embeddable
 @Data
 @AllArgsConstructor

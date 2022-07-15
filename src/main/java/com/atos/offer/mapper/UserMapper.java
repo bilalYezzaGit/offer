@@ -6,6 +6,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
+/**
+ * Map between business objects and entities.
+ */
 @Mapper
 public interface UserMapper {
 

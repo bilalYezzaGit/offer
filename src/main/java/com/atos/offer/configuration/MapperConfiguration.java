@@ -7,8 +7,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/**
+ * Mapper Configuration.
+ */
 @Configuration
 public class MapperConfiguration {
+    /**
+     * Object Mapper bean
+     *
+     * @return objectMapper bean
+     */
     @Bean
     @Primary
     public ObjectMapper objectMapper() {

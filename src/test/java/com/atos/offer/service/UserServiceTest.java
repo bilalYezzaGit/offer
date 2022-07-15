@@ -1,17 +1,19 @@
 package com.atos.offer.service;
 
+import com.atos.offer.dto.UserDto;
 import com.atos.offer.enums.Gender;
-import com.atos.offer.exception.BadCountryException;
 import com.atos.offer.exception.UserAlreadyExistsException;
 import com.atos.offer.exception.UserNotFoundException;
+import com.atos.offer.mapper.UserMapper;
 import com.atos.offer.model.User;
 import com.atos.offer.model.UserId;
 import com.atos.offer.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
     private final static LocalDate birthDate = LocalDate.of(1993, 1, 10);
@@ -32,10 +34,10 @@ class UserServiceTest {
     private final static String phoneNumber = "0758624883";
     private final static Gender gender = Gender.M;
 
-    @MockBean
+    @Mock
     UserRepository userRepository;
 
-    @Autowired
+    @InjectMocks
     UserService userService;
 
     @Test
@@ -50,12 +52,12 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
         //When
-        User foundUser = userService.getUserById(username, birthDate, country);
+        UserDto foundUser = userService.getUserById(username, birthDate, country);
 
         //then
-        assertThat(foundUser.getUserId().getUserName()).isEqualTo(username);
-        assertThat(foundUser.getUserId().getBirthDate()).isEqualTo(birthDate);
-        assertThat(foundUser.getUserId().getCountry()).isEqualTo(country);
+        assertThat(foundUser.getUserName()).isEqualTo(username);
+        assertThat(foundUser.getBirthDate()).isEqualTo(birthDate);
+        assertThat(foundUser.getCountry()).isEqualTo(country);
         assertThat(foundUser.getGender()).isEqualTo(gender);
         assertThat(foundUser.getPhoneNumber()).isEqualTo(phoneNumber);
     }
@@ -76,23 +78,6 @@ class UserServiceTest {
 
 
     @Test
-    void shoud_throw_exception_when_creating_not_french_user() {
-        //Given
-        User user = User
-                .builder()
-                .userId(new UserId(username, birthDate, otherCountry))
-                .build();
-
-        //When
-        BadCountryException exception = assertThrows(BadCountryException.class, () -> userService.createUser(user));
-
-        //then
-        assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(exception.getMessage()).isEqualTo("Cannot register user with Country " + otherCountry + ".");
-    }
-
-
-    @Test
     void shoud_throw_exception_when_creating_existing_user() {
         //Given
         UserId userId = new UserId(username, birthDate, country);
@@ -100,10 +85,11 @@ class UserServiceTest {
                 .builder()
                 .userId(userId)
                 .build();
+        UserDto userDto = UserMapper.INSTANCE.toDto(user);
         Mockito.when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
         //When
-        UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(user));
+        UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(userDto));
 
         //then
         assertThat(exception.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -121,16 +107,17 @@ class UserServiceTest {
                 .phoneNumber(phoneNumber)
                 .gender(gender)
                 .build();
+        UserDto userDto = UserMapper.INSTANCE.toDto(user);
         Mockito.when(userRepository.findById(any())).thenReturn(Optional.empty());
         Mockito.when(userRepository.save(any())).thenReturn(user);
 
         //When
-        User savedUser = userService.createUser(user);
+        UserDto savedUser = userService.createUser(userDto);
 
         //then
-        assertThat(savedUser.getUserId().getUserName()).isEqualTo(username);
-        assertThat(savedUser.getUserId().getBirthDate()).isEqualTo(birthDate);
-        assertThat(savedUser.getUserId().getCountry()).isEqualTo(country);
+        assertThat(savedUser.getUserName()).isEqualTo(username);
+        assertThat(savedUser.getBirthDate()).isEqualTo(birthDate);
+        assertThat(savedUser.getCountry()).isEqualTo(country);
         assertThat(savedUser.getGender()).isEqualTo(gender);
         assertThat(savedUser.getPhoneNumber()).isEqualTo(phoneNumber);
     }

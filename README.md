@@ -11,7 +11,7 @@ This Documentation is divided into three parts:
 
 ##REQUIREMENTS
 To run the api, we need:
-* Java jdk 8+
+* Java jdk 17
 * Maven
 
 ##STEPS

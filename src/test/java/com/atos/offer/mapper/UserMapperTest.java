@@ -51,5 +51,20 @@ class UserMapperTest {
         assertThat(userDto.getPhoneNumber()).isEqualTo(phoneNumber);
     }
 
+    @Test
+    void map_null_objects() {
+        //Given
+        User userEntity = null;
+        UserDto userDto = null;
+
+        //When
+        UserDto convertedDto = UserMapper.INSTANCE.toDto(userEntity);
+        User convertedEntity = UserMapper.INSTANCE.toEntity(userDto);
+
+        //then
+        assertThat(convertedDto).isNull();
+        assertThat(convertedEntity).isNull();
+    }
+
 
 }

@@ -11,6 +11,9 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+/**
+ * User entity
+ */
 @Data
 @Builder
 @NoArgsConstructor
